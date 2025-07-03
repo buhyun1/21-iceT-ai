@@ -43,8 +43,20 @@ async def handle_interview_start(req: InterviewStartRequest):
 
 async def handle_interview_answer(req: InterviewfollowRequest) -> AsyncGenerator[str, None]:
     messages = [{"role": m.role, "content": m.content} for m in req.messages]
-
     context_text = build_context_text(messages, summary=req.summary)
+
+    # assistant가 질문한 횟수 세기
+    assistant_questions = [m for m in messages if m["role"] == "assistant"]
+    if len(assistant_questions) >= 8:
+        # 5번 이상이면 강제 종료 및 총평
+        evaluation_stream = await call_agent(
+            EVALUATION_AGENT_PROMPT.format(context=context_text),
+            stream=True,
+            max_tokens=settings.max_tokens_interview_end,
+            session_id=req.sessionId,
+        )
+        asyncio.create_task(notify_interview_end(req.sessionId, finished=True))
+        return evaluation_stream
 
     # 대화 흐름 판단 (followup / question / end)
     flow_decision = await call_agent(
@@ -52,7 +64,6 @@ async def handle_interview_answer(req: InterviewfollowRequest) -> AsyncGenerator
         stream=False,
         max_tokens=10
     )
-
     decision = flow_decision.strip().lower()
 
     # 종료 판단 → 총평 스트리밍
@@ -69,7 +80,7 @@ async def handle_interview_answer(req: InterviewfollowRequest) -> AsyncGenerator
     # 종료가 아닐 때도 상태 전달
     asyncio.create_task(notify_interview_end(req.sessionId, finished=False))
 
-    #  followup or question → 스트리밍 질문 생성
+    # followup or question → 스트리밍 질문 생성
     if decision == "followup":
         previous_question = messages[-2]["content"] if len(messages) >= 2 and messages[-2]["role"] == "assistant" else ""
         user_response = messages[-1]["content"] if len(messages) >= 1 and messages[-1]["role"] == "user" else ""
