@@ -18,17 +18,17 @@ async def notify_interview_end(session_id: str):
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.post(
                 BACKEND_INTERVIEW_URL,
-                json={"sessionId": session_id, "isFinished": True},
+                json={"sessionId": session_id, "finished": True},
             )
 
             # ✅ 상태 저장
-            is_success = response.status_code == 200
-            interview_end_status[session_id] = is_success
+            finished = response.status_code == 200
+            interview_end_status[session_id] = finished
 
             # ✅ 상태 출력
-            print(f"[notify_interview_end] session_id={session_id}, is_finished={is_success}")
+            print(f"[notify_interview_end] session_id={session_id}, finished={finished}")
 
-            if not is_success:
+            if not finished:
                 logging.warning(f"[notify_interview_end] 상태코드 {response.status_code}: {response.text}")
     except Exception as e:
         interview_end_status[session_id] = False
