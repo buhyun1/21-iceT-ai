@@ -13,26 +13,20 @@ logger = logging.getLogger(__name__)
 #  백엔드 인터뷰 종료 알림 비동기 POST 함수 (2-2)
 interview_end_status = {}
 
-async def notify_interview_end(session_id: str):
+async def notify_interview_end(session_id: str, finished: bool):
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.post(
                 BACKEND_INTERVIEW_URL,
-                json={"sessionId": session_id, "finished": True},
+                json={"sessionId": session_id, "finished": finished},
             )
-
-            # ✅ 상태 저장
-            finished = response.status_code == 200
-            interview_end_status[session_id] = finished
-
-            # ✅ 상태 출력
+            interview_end_status[session_id] = response.status_code == 200 and finished
             print(f"[notify_interview_end] session_id={session_id}, finished={finished}")
-
-            if not finished:
+            if response.status_code != 200:
                 logging.warning(f"[notify_interview_end] 상태코드 {response.status_code}: {response.text}")
     except Exception as e:
         interview_end_status[session_id] = False
-        print(f"[notify_interview_end] 호출 실패: session_id={session_id}, is_finished=False")
+        print(f"[notify_interview_end] 호출 실패: session_id={session_id}, finished={finished}")
         logging.warning(f"[notify_interview_end] 호출 실패: {e}")
 
 #  /interview/start
@@ -61,7 +55,7 @@ async def handle_interview_answer(req: InterviewfollowRequest) -> AsyncGenerator
 
     decision = flow_decision.strip().lower()
 
-    #  종료 판단 → 총평 스트리밍
+    # 종료 판단 → 총평 스트리밍
     if decision == "end":
         evaluation_stream = await call_agent(
             EVALUATION_AGENT_PROMPT.format(context=context_text),
@@ -69,11 +63,11 @@ async def handle_interview_answer(req: InterviewfollowRequest) -> AsyncGenerator
             max_tokens=settings.max_tokens_interview_end,
             session_id=req.sessionId,
         )
+        asyncio.create_task(notify_interview_end(req.sessionId, finished=True))
+        return evaluation_stream
 
-        # 🔄 비동기 종료 알림
-        asyncio.create_task(notify_interview_end(req.sessionId))
-
-        return evaluation_stream  #  stream 그대로 반환
+    # 종료가 아닐 때도 상태 전달
+    asyncio.create_task(notify_interview_end(req.sessionId, finished=False))
 
     #  followup or question → 스트리밍 질문 생성
     if decision == "followup":
