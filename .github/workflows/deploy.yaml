@@ -36,7 +36,7 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         IMAGE_TAG: latest
       run: |
-        docker build -f src/chatbot/Dockerfile -t $ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -f src/solchat/Dockerfile -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REPOSITORY:$IMAGE_TAG
 
   deploy-to-ec2:
