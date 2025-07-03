@@ -9,6 +9,7 @@ router = APIRouter()
 # - 요청 헤더에서 API 키를 추출하고, 서비스 설정에 정의된 API 키와 비교
 # - 일치하지 않으면 401 예외 발생
 def verify_api_key(x_api_key: str = Header(...)):
+    print("API Key:", x_api_key)
     if x_api_key != SERVICE_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
