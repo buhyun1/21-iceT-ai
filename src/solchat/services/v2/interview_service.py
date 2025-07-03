@@ -11,6 +11,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 #  백엔드 인터뷰 종료 알림 비동기 POST 함수 (2-2)
+interview_end_status = {}
+
 async def notify_interview_end(session_id: str):
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -18,9 +20,19 @@ async def notify_interview_end(session_id: str):
                 BACKEND_INTERVIEW_URL,
                 json={"sessionId": session_id, "isFinished": True},
             )
-            if response.status_code != 200:
+
+            # ✅ 상태 저장
+            is_success = response.status_code == 200
+            interview_end_status[session_id] = is_success
+
+            # ✅ 상태 출력
+            print(f"[notify_interview_end] session_id={session_id}, is_finished={is_success}")
+
+            if not is_success:
                 logging.warning(f"[notify_interview_end] 상태코드 {response.status_code}: {response.text}")
     except Exception as e:
+        interview_end_status[session_id] = False
+        print(f"[notify_interview_end] 호출 실패: session_id={session_id}, is_finished=False")
         logging.warning(f"[notify_interview_end] 호출 실패: {e}")
 
 #  /interview/start

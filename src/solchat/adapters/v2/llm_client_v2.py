@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 # 1) genai 클라이언트 생성
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-print("gemini api key:", os.getenv("GEMINI_API_KEY"))
 
 def generate_solution(prompt_text: str) -> SolutionResponse:
     try:
