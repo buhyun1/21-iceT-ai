@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     max_tokens_feedback_answer: int = 1024
     max_tokens_interview_start: int = 768
     max_tokens_interview_answer: int = 1024
+    max_tokens_interview_end: int = 4096
     max_tokens_summary: int = 768
 
     max_summary_sentences_problem: int = 4

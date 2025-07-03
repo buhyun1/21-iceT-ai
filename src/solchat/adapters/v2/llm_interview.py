@@ -9,7 +9,7 @@ from src.solchat.core.utils.stream_utils import wrap_stream_response
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-solar_key_manager = APIKeyManager(os.getenv("SOLAR_API_KEYS"))
+solar_key_manager = APIKeyManager(os.getenv("SOLAR_API_KEYS").split(","))
 
 client = OpenAI(
     api_key=solar_key_manager.next_key(),

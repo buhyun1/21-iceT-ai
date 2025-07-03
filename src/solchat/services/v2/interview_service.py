@@ -88,7 +88,7 @@ async def handle_interview_answer(req: InterviewfollowRequest) -> AsyncGenerator
                 avoid_list=avoid_list
             ),
             stream=True,
-            max_tokens=settings.max_tokens_interview_start,
+            max_tokens=settings.max_tokens_interview_answer,
             session_id=req.sessionId,
         )
         return question_stream
