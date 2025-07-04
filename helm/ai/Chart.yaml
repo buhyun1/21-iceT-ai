@@ -1,0 +1,5 @@
+apiVersion: v2
+name: koco-ai
+description: koco-ai for the app
+version: 0.1.0
+appVersion: "1.0" 
