@@ -14,7 +14,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: koco-ai-service
+            name: koco-ai
             port:
               number: 80
 # TLS 사용 시
