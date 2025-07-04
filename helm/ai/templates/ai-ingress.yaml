@@ -1,1 +1,24 @@
-
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: koco-ai
+  namespace: ai-chatbot
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: koco-ai-service
+            port:
+              number: 80
+# TLS 사용 시
+# tls:
+# - hosts:
+#   - api.koco.click
+#   secretName: api-koco-click-tls
