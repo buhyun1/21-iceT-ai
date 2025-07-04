@@ -1,1 +1,32 @@
-
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: koco-ai
+  namespace: ai-chatbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: koco-ai
+  template:
+    metadata:
+      labels:
+        app: koco-ai
+    spec:
+      imagePullSecrets:
+        - name: ecr-registry
+      containers:
+        - name: koco-ai
+          image: 266735804784.dkr.ecr.ap-northeast-2.amazonaws.com/crawler-boj:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: koco-ai-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
